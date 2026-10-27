@@ -50,8 +50,17 @@ test("keyboard flow reaches the skip link and operates both workbenches", async 
   await page.keyboard.press("Enter");
   await expect(page.locator("#main-content")).toBeFocused();
 
-  await page.locator("#vector-0").focus();
-  await page.keyboard.press("End");
+  // The keyboard owns focus traversal; the value change is driven through the
+  // select's own API. A key press on a closed <select> is platform widget
+  // behaviour, not the lab's: End and ArrowDown change the value on Linux and
+  // open the native popup on macOS, which made this assertion red on macOS and
+  // green in CI for a reason that had nothing to do with retirement. "15" is the
+  // option End reached on Linux, so the state the rest of the flow sees is the
+  // same as before.
+  const vector0 = page.locator("#vector-0");
+  await vector0.focus();
+  await expect(vector0).toBeFocused();
+  await vector0.selectOption("15");
   await page.keyboard.press("Tab");
   await expect(page.locator("#vector-1")).toBeFocused();
   await expect(page.locator("#metric-result")).toHaveAttribute("data-status", "stale");
