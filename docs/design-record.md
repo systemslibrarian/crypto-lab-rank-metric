@@ -2,8 +2,7 @@
 
 Date: 2026-10-26 (America/New_York)
 
-Status: implementation candidate complete; hosted browser, mutation, review, merge, and deployment
-not yet credited
+Status: Live — independently reviewed, merged, exact-main tested, deployed and public-byte verified
 
 ## Selection
 
@@ -87,7 +86,7 @@ primary papers govern construction and security claims.
 - immutable production build, dependency audit, CodeQL, exact Pages artifact, and post-merge
   served-asset verification.
 
-## Candidate implementation evidence
+## Implementation evidence before merge
 
 The feature branch now computes the field, matrix expansion, weights, complete 256-word census,
 bounded decoder, three pinned controls, and complete rank-two census from executable state. The unit
@@ -98,5 +97,23 @@ production build also pass locally.
 
 The Mac browser exits before page creation at its operating-system Mach-port registration step, so
 no local browser pass is claimed. The Playwright claims/accessibility suite and the clean-baseline
-ten-mutation campaign require hosted Linux execution before this candidate can be considered
-verified. No merge, deployment, public-site, Hub integration, or Live status is credited here.
+ten-mutation campaign therefore required hosted Linux execution before the candidate could be
+considered verified.
+
+## Delivered verification
+
+[PR #1](https://github.com/systemslibrarian/crypto-lab-rank-metric/pull/1) was independently
+reviewed at feature head `6840a8266f78a65a7959d5a34e6bb18f1433d25e` and squash-merged as exact main
+`ea94a1dc44859703373a35d089d1569b95373b34`; the trees are identical. Exact-main workflow
+`40438547444` passed 22 unit tests, 99.48/95.60/100/100 coverage, six independent browser claim
+checks, five accessibility/keyboard/forced-colors/reduced-motion/reflow checks, a clean baseline
+followed by all ten named mutations and the restored baseline, the production build and a
+zero-vulnerability dependency audit. CodeQL run `40438154639` also passed.
+
+Pages artifact `12705945144` deployed successfully for the exact merge SHA. A fresh build from that
+revision matched the public HTML, JavaScript and CSS byte for byte; their SHA-256 values are
+`88fc3f265bf903daa979e811d9e1d3791522dd88fb1a392b2c9f3dec21ec180e`,
+`6c5099c3455a737506509511b09e3d99792150615f151733689f9952c9988c3d`, and
+`2d50d09d20f1115b8bd63b418ed157c364b390b648c87e3165cc4751284e4429`. The lesson is Live; Hub
+catalog/roadmap integration remains a separate delivery rather than being implied by this lab
+record.

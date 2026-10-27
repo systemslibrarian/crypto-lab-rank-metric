@@ -14,14 +14,31 @@ completed runs.
 | changed inputs retire old verdicts                       | `src/main.ts`                               | browser tests change vector, message, and scenario inputs before rerunning                                                       |
 | family/security status remains bounded                   | learner boundary table, README, limitations | browser regressions pin non-claims and primary/authoritative source links                                                        |
 
-## Current local evidence
+## Delivered evidence
 
-- Unit tests: 22 passed.
-- Coverage: 99.43% statements, 96.47% branches, 100% functions, 100% lines for `src/rank/**` in the
-  latest recorded local run.
-- TypeScript, ESLint, Prettier, production build, and no-source-map artifact verification: passed.
+- Reviewed feature head `6840a8266f78a65a7959d5a34e6bb18f1433d25e` was squash-merged by
+  [PR #1](https://github.com/systemslibrarian/crypto-lab-rank-metric/pull/1) as exact main
+  `ea94a1dc44859703373a35d089d1569b95373b34`; their trees are identical.
+- Exact-main
+  [verification and deployment run `40438547444`](https://github.com/systemslibrarian/crypto-lab-rank-metric/actions/runs/40438547444)
+  passed formatting, TypeScript, ESLint, the production build and the dependency audit with zero
+  vulnerabilities. Its unit gate passed 22/22 tests with 99.48% statements, 95.60% branches, 100%
+  functions and 100% lines over `src/rank/**`.
+- The same exact-main run passed all 6 learner-visible claim checks and all 5
+  accessibility/keyboard/forced-colors/reduced-motion/reflow checks. Its independent job first
+  passed the unmodified baseline, caught all 10 named source mutations, verified source restoration
+  and passed the restored unit/build baseline.
+- Exact-main
+  [CodeQL run `40438154639`](https://github.com/systemslibrarian/crypto-lab-rank-metric/actions/runs/40438154639)
+  completed successfully.
+- Pages artifact `12705945144` is 10,322 bytes with upload SHA-256
+  `f550fc23c8550be17ebf728a37996c3d3a2399410678833ba06170713e3871ea`; the deploy job reported
+  success for exact merge SHA `ea94a1dc44859703373a35d089d1569b95373b34`.
+- A fresh exact-main build and the public site matched byte for byte: `index.html`
+  `88fc3f265bf903daa979e811d9e1d3791522dd88fb1a392b2c9f3dec21ec180e`, JavaScript
+  `6c5099c3455a737506509511b09e3d99792150615f151733689f9952c9988c3d`, and CSS
+  `2d50d09d20f1115b8bd63b418ed157c364b390b648c87e3165cc4751284e4429` (SHA-256).
 - Local Playwright launch: unavailable on this Mac because Chromium exits before page creation at
   the operating-system `MachPortRendezvousServer` bootstrap step. This is recorded as an environment
-  failure, not a passing browser result; hosted Linux results are required before merge.
-- Hosted browser/accessibility, mutation, CodeQL, exact-main deployment, and public-byte
-  verification: not yet credited.
+  failure, not a passing browser result; the exact-main hosted Linux results above supply the
+  browser authority.
