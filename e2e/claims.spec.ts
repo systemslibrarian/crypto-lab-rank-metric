@@ -51,6 +51,7 @@ test.beforeEach(async ({ page }) => {
 
 test("the page labels its exact construction and non-cryptosystem boundary", async ({ page }) => {
   await expect(page).toHaveTitle("Rank Metric Lab · Crypto Lab");
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
   await expect(page.getByRole("heading", { level: 1, name: "Rank Metric Lab" })).toBeVisible();
   await expect(page.getByText("Not a cryptosystem.", { exact: true })).toBeVisible();
   await expect(page.locator("html")).toHaveAttribute("data-evaluation-vector", "1,2,4,8");
