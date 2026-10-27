@@ -75,6 +75,40 @@ export function rankDistance(left: Word, right: Word): number {
   return rankWeight(addWords(left, right));
 }
 
+/**
+ * Rank a fixed four-symbol word as the dimension of its GF(2) span.
+ *
+ * This is the same quantity as `rankWeight`, which explicitly expands the
+ * word to a 4x4 binary matrix for the learner-facing derivation. The decoder
+ * uses this allocation-free basis form because its exhaustive census performs
+ * millions of distance checks under coverage instrumentation. The tests
+ * compare every codeword and every correctable error with the independently
+ * structured span oracle.
+ */
+function fixedWordRank(word: Word): number {
+  const basis = [0, 0, 0, 0];
+  let rank = 0;
+  for (const value of word) {
+    let candidate = value;
+    for (let bit = FIELD_DEGREE - 1; bit >= 0; bit -= 1) {
+      if ((candidate & (1 << bit)) === 0) continue;
+      const pivot = basis[bit] ?? 0;
+      if (pivot !== 0) {
+        candidate ^= pivot;
+      } else {
+        basis[bit] = candidate;
+        rank += 1;
+        break;
+      }
+    }
+  }
+  return rank;
+}
+
+function decoderDistance(left: Word, right: Word): number {
+  return fixedWordRank(left.map((value, index) => value ^ right[index]) as unknown as Word);
+}
+
 let cachedCodebook: readonly CodewordRecord[] | undefined;
 
 export function enumerateCodebook(): readonly CodewordRecord[] {
@@ -87,7 +121,7 @@ export function enumerateCodebook(): readonly CodewordRecord[] {
 export function boundedDecode(received: Word): DecodeResult {
   assertWord(received);
   const candidates = enumerateCodebook()
-    .map((record) => ({ ...record, distance: rankDistance(received, record.word) }))
+    .map((record) => ({ ...record, distance: decoderDistance(received, record.word) }))
     .filter((record) => record.distance <= DECODING_RADIUS);
 
   if (candidates.length !== 1) return { status: "refused", candidateCount: candidates.length };
