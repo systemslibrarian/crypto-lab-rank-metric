@@ -1,0 +1,345 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="An executable GF(16) rank-metric and bounded Gabidulin-code lesson."
+    />
+    <meta name="theme-color" content="#0b111d" />
+    <title>Rank Metric Lab · Crypto Lab</title>
+  </head>
+  <body>
+    <a class="skip-link" href="#main-content">Skip to lesson</a>
+
+    <header class="site-header">
+      <div class="header-inner">
+        <p class="eyebrow">Crypto Lab · S10</p>
+        <h1>Rank Metric Lab</h1>
+        <p class="lede">
+          Turn extension-field symbols into a binary matrix, measure rank, and test the exact
+          decoding boundary of a small Gabidulin code.
+        </p>
+        <p class="scope-marker">
+          <strong>Not a cryptosystem.</strong> This lesson implements code mathematics only.
+        </p>
+        <nav aria-label="Lesson sections">
+          <a href="#metric">Two weights</a>
+          <a href="#code">MRD census</a>
+          <a href="#decoder">Decoder</a>
+          <a href="#boundary">Security boundary</a>
+        </nav>
+      </div>
+    </header>
+
+    <main id="main-content" tabindex="-1">
+      <section id="metric" aria-labelledby="metric-title">
+        <p class="section-number">01 · Change the metric</p>
+        <h2 id="metric-title">One vector, two different weights</h2>
+        <p>
+          Each symbol belongs to <span class="math">GF(2⁴) = GF(2)[α]/(α⁴ + α + 1)</span>. Hamming
+          weight counts nonzero extension-field symbols. Rank weight expands each symbol in the
+          ordered basis <span class="math">(1, α, α², α³)</span> and takes the binary matrix rank.
+        </p>
+
+        <div class="workbench two-column">
+          <form id="vector-form" class="control-panel">
+            <fieldset>
+              <legend>Select a vector in GF(16)⁴</legend>
+              <div class="symbol-grid">
+                <label>v₀<select id="vector-0" data-vector-index="0"></select></label>
+                <label>v₁<select id="vector-1" data-vector-index="1"></select></label>
+                <label>v₂<select id="vector-2" data-vector-index="2"></select></label>
+                <label>v₃<select id="vector-3" data-vector-index="3"></select></label>
+              </div>
+            </fieldset>
+            <button id="measure-button" type="submit">Compute both weights</button>
+          </form>
+
+          <div id="metric-result" class="result-panel" aria-live="polite" data-status="current">
+            <p class="result-label">Current computation</p>
+            <p id="selected-vector" class="vector-output"></p>
+            <dl class="metrics">
+              <div>
+                <dt>Hamming weight</dt>
+                <dd id="hamming-weight"></dd>
+              </div>
+              <div>
+                <dt>Rank weight</dt>
+                <dd id="rank-weight"></dd>
+              </div>
+            </dl>
+            <div class="table-scroll" tabindex="0" aria-label="Binary matrix, scrollable if needed">
+              <table>
+                <caption>
+                  Binary coordinates; rows follow basis order 1, α, α², α³
+                </caption>
+                <thead>
+                  <tr>
+                    <th scope="col">Basis row</th>
+                    <th scope="col">v₀</th>
+                    <th scope="col">v₁</th>
+                    <th scope="col">v₂</th>
+                    <th scope="col">v₃</th>
+                  </tr>
+                </thead>
+                <tbody id="binary-matrix"></tbody>
+              </table>
+            </div>
+            <p id="metric-note" class="result-note"></p>
+          </div>
+        </div>
+      </section>
+
+      <section id="code" aria-labelledby="code-title">
+        <p class="section-number">02 · Build the code</p>
+        <h2 id="code-title">A complete [4, 2, 3] Gabidulin census</h2>
+        <p>
+          For message <span class="math">(a₀,a₁)</span>, the encoder evaluates the linearized
+          polynomial <span class="math">f(x)=a₀x+a₁x²</span> at
+          <span class="math">g=(1,α,α²,α³)</span>. The four evaluation points are linearly
+          independent over GF(2). Every figure below is recomputed from all 256 messages.
+        </p>
+
+        <div class="parameter-strip" aria-label="Code parameters">
+          <div><span>Length</span><strong data-code-n>4</strong></div>
+          <div><span>Dimension</span><strong data-code-k>2</strong></div>
+          <div><span>Minimum rank distance</span><strong data-code-d></strong></div>
+          <div><span>Unique radius</span><strong data-code-t></strong></div>
+        </div>
+
+        <div class="two-column evidence-grid">
+          <article class="evidence-card">
+            <h3>Generator matrix over GF(16)</h3>
+            <div
+              class="table-scroll"
+              tabindex="0"
+              aria-label="Generator matrix, scrollable if needed"
+            >
+              <table>
+                <caption>
+                  Rows are evaluations of x and x²
+                </caption>
+                <thead>
+                  <tr>
+                    <th scope="col">Polynomial</th>
+                    <th scope="col">g₀ = 1</th>
+                    <th scope="col">g₁ = α</th>
+                    <th scope="col">g₂ = α²</th>
+                    <th scope="col">g₃ = α³</th>
+                  </tr>
+                </thead>
+                <tbody id="generator-matrix"></tbody>
+              </table>
+            </div>
+          </article>
+          <article class="evidence-card">
+            <h3>Exhaustive evidence</h3>
+            <dl class="evidence-list">
+              <div>
+                <dt>Messages / distinct words</dt>
+                <dd id="codeword-count"></dd>
+              </div>
+              <div>
+                <dt>Nonzero rank distribution</dt>
+                <dd id="rank-distribution"></dd>
+              </div>
+              <div>
+                <dt>Measured minimum distance</dt>
+                <dd id="measured-distance"></dd>
+              </div>
+              <div>
+                <dt>Singleton bound</dt>
+                <dd id="singleton-bound"></dd>
+              </div>
+            </dl>
+          </article>
+        </div>
+      </section>
+
+      <section id="decoder" aria-labelledby="decoder-title">
+        <p class="section-number">03 · Cross the guarantee</p>
+        <h2 id="decoder-title">Decode by actual rank distance</h2>
+        <p>
+          This finite decoder checks every one of the 256 codewords and returns a word only when
+          exactly one lies at rank distance at most <span class="math">t=1</span>. It is an
+          auditable exhaustive decoder—not Gabidulin’s efficient algebraic algorithm.
+        </p>
+
+        <div class="workbench two-column">
+          <form id="decoder-form" class="control-panel">
+            <fieldset>
+              <legend>Select the two-symbol message</legend>
+              <div class="symbol-grid message-grid">
+                <label>a₀<select id="message-0"></select></label>
+                <label>a₁<select id="message-1"></select></label>
+              </div>
+            </fieldset>
+            <label for="scenario">Error experiment</label>
+            <select id="scenario">
+              <option value="within">Rank-one correction</option>
+              <option value="refusal">Rank-two refusal</option>
+              <option value="miscorrection">Rank-two miscorrection</option>
+            </select>
+            <button type="submit">Run bounded decoder</button>
+          </form>
+
+          <div id="decoder-result" class="result-panel" aria-live="polite" data-status="current">
+            <p class="result-label">Decoder verdict</p>
+            <h3 id="decoder-outcome"></h3>
+            <p id="decoder-explanation"></p>
+            <dl class="trace-list">
+              <div>
+                <dt>Transmitted word</dt>
+                <dd id="transmitted-word"></dd>
+              </div>
+              <div>
+                <dt>Error vector</dt>
+                <dd id="error-word"></dd>
+              </div>
+              <div>
+                <dt>Error weights</dt>
+                <dd id="error-weights"></dd>
+              </div>
+              <div>
+                <dt>Received word</dt>
+                <dd id="received-word"></dd>
+              </div>
+              <div>
+                <dt>Reported message</dt>
+                <dd id="reported-message"></dd>
+              </div>
+              <div>
+                <dt>Independent check</dt>
+                <dd id="independent-check"></dd>
+              </div>
+            </dl>
+          </div>
+        </div>
+
+        <article class="census-card" aria-labelledby="census-title">
+          <div>
+            <p class="result-label">Complete beyond-radius control</p>
+            <h3 id="census-title">Enumerate every rank-two error from the zero word</h3>
+            <p>
+              This checks the entire finite error set, not a random sample. “Correct” means
+              recovering the transmitted zero message; “miscorrected” means returning a different
+              codeword within the decoder’s radius.
+            </p>
+          </div>
+          <button id="census-button" type="button">Run all rank-two errors</button>
+          <div id="census-result" class="census-result" aria-live="polite" data-status="idle">
+            <p>No census has run in this page session.</p>
+          </div>
+        </article>
+      </section>
+
+      <section id="boundary" aria-labelledby="boundary-title">
+        <p class="section-number">04 · Keep the claim bounded</p>
+        <h2 id="boundary-title">Code family is not deployment status</h2>
+        <div
+          class="table-scroll"
+          tabindex="0"
+          aria-label="Family boundary table, scrollable if needed"
+        >
+          <table class="boundary-table">
+            <thead>
+              <tr>
+                <th scope="col">Name</th>
+                <th scope="col">What this lesson establishes</th>
+                <th scope="col">What it does not establish</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <th scope="row">Gabidulin code</th>
+                <td>Executable MRD code mathematics in a 256-word teaching space.</td>
+                <td>
+                  No encryption, KEM, security reduction, production parameters, or efficient
+                  decoder.
+                </td>
+              </tr>
+              <tr>
+                <th scope="row">GPT / Faure–Loidreau</th>
+                <td>Named as historical rank-code public-key constructions.</td>
+                <td>
+                  Not implemented; this code demo does not transfer security to them. Published
+                  structural attacks must be assessed per construction.
+                </td>
+              </tr>
+              <tr>
+                <th scope="row">RQC</th>
+                <td>Named as a structured rank-metric KEM considered by NIST.</td>
+                <td>
+                  Not implemented or endorsed. NIST IR 8309 records that its Round-2 parameter sets
+                  were reduced below 128-bit security and it did not advance.
+                </td>
+              </tr>
+              <tr>
+                <th scope="row">Classic McEliece / HQC</th>
+                <td>Useful comparison labs in the same broad code-based family.</td>
+                <td>
+                  They use Hamming-metric constructions; they are not Gabidulin or rank-metric
+                  schemes.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <aside class="limits" aria-labelledby="limits-title">
+          <h3 id="limits-title">Model limits</h3>
+          <ul>
+            <li>
+              GF(16), four-symbol words, and exhaustive search are deliberately tiny teaching
+              choices.
+            </li>
+            <li>
+              The decoder guarantee covers rank errors of weight at most one. Outcomes beyond that
+              radius carry no correction promise.
+            </li>
+            <li>
+              The experiment says nothing about side channels, implementation hardening, parameter
+              selection, or cryptosystem security.
+            </li>
+          </ul>
+        </aside>
+
+        <div class="sources">
+          <h3>Primary and authoritative sources</h3>
+          <ul>
+            <li>
+              <a href="https://www.mathnet.ru/eng/ppi967"
+                >Gabidulin, “Theory of Codes with Maximum Rank Distance” (1985)</a
+              >
+              — MRD construction and decoding.
+            </li>
+            <li>
+              <a href="https://arxiv.org/abs/1606.07760"
+                >Gaborit, Otmani, and Talé Kalachi, arXiv:1606.07760</a
+              >
+              — rank-weight definition, Gabidulin generator form, and a construction-specific
+              structural attack.
+            </li>
+            <li>
+              <a href="https://doi.org/10.6028/NIST.IR.8309">NIST IR 8309, §3.16</a> — RQC’s 2020
+              third-round selection status and cryptanalytic record.
+            </li>
+          </ul>
+          <p class="secondary-source">
+            Secondary orientation: Gabidulin, “Schemes Based on Rank Codes,” in the
+            <cite>Encyclopedia of Cryptography, Security and Privacy</cite>, 3rd ed. (2025),
+            <a href="https://doi.org/10.1007/978-3-030-71522-9_388">DOI entry 388</a>.
+          </p>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <p>Crypto Lab · Bounded computations, inspectable claims.</p>
+    </footer>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
