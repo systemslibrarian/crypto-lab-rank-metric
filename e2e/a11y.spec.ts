@@ -1,5 +1,6 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
+import { auditControlNames, formatControlNameFailures } from "./control-names";
 
 async function expectNoOverflow(page: Page): Promise<void> {
   const dimensions = await page.evaluate(() => ({
@@ -14,6 +15,9 @@ async function expectNoAxeViolations(page: Page): Promise<void> {
     .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"])
     .analyze();
   expect(results.violations).toEqual([]);
+  // axe's `label` rule accepts a bare `placeholder` as an accessible name, so a
+  // deleted label can leave this gate green. See `control-names.ts`.
+  expect(formatControlNameFailures(await auditControlNames(page))).toEqual([]);
 }
 
 for (const viewport of [
