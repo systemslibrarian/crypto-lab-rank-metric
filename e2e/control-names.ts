@@ -1,4 +1,4 @@
-import type { Page } from '@playwright/test';
+import type { Page } from "@playwright/test";
 
 /**
  * WCAG 4.1.2 / 1.3.1, the part axe's `label` rule cannot hold.
@@ -54,7 +54,7 @@ export interface ControlNameFailure {
 
 export async function auditControlNames(page: Page): Promise<ControlNameFailure[]> {
   return page.evaluate(() => {
-    const SKIP_INPUT_TYPES = new Set(['hidden', 'submit', 'button', 'reset', 'image']);
+    const SKIP_INPUT_TYPES = new Set(["hidden", "submit", "button", "reset", "image"]);
     const SELECTOR =
       'input, select, textarea, [role="searchbox"], [role="combobox"], [role="textbox"]';
 
@@ -66,30 +66,32 @@ export async function auditControlNames(page: Page): Promise<ControlNameFailure[
      */
     const ownText = (label: Element): string => {
       const clone = label.cloneNode(true) as Element;
-      clone.querySelectorAll('input, select, textarea, option, optgroup').forEach((n) => n.remove());
-      return (clone.textContent ?? '').replace(/\s+/g, ' ').trim();
+      clone
+        .querySelectorAll("input, select, textarea, option, optgroup")
+        .forEach((n) => n.remove());
+      return (clone.textContent ?? "").replace(/\s+/g, " ").trim();
     };
 
     const rendered = (el: Element): boolean => {
       const withCheck = el as Element & { checkVisibility?: () => boolean };
-      if (typeof withCheck.checkVisibility === 'function') return withCheck.checkVisibility();
+      if (typeof withCheck.checkVisibility === "function") return withCheck.checkVisibility();
       const r = el.getBoundingClientRect();
       return r.width > 0 || r.height > 0;
     };
 
     const describe = (el: Element): string => {
       const tag = el.tagName.toLowerCase();
-      const role = el.getAttribute('role');
-      const type = el.getAttribute('type');
-      const id = el.id ? `#${el.id}` : '';
-      const name = el.getAttribute('name');
+      const role = el.getAttribute("role");
+      const type = el.getAttribute("type");
+      const id = el.id ? `#${el.id}` : "";
+      const name = el.getAttribute("name");
       return [
         tag,
         id,
-        type ? `[type=${type}]` : '',
-        name ? `[name=${name}]` : '',
-        role && !id ? `[role=${role}]` : '',
-      ].join('');
+        type ? `[type=${type}]` : "",
+        name ? `[name=${name}]` : "",
+        role && !id ? `[role=${role}]` : "",
+      ].join("");
     };
 
     const failures: ControlNameFailure[] = [];
@@ -100,26 +102,26 @@ export async function auditControlNames(page: Page): Promise<ControlNameFailure[
 
       let named = false;
 
-      const labelledby = el.getAttribute('aria-labelledby');
+      const labelledby = el.getAttribute("aria-labelledby");
       if (labelledby) {
         named = labelledby
           .split(/\s+/)
           .filter(Boolean)
           .some((id) => {
             const target = document.getElementById(id);
-            return !!target && (target.textContent ?? '').trim() !== '';
+            return !!target && (target.textContent ?? "").trim() !== "";
           });
       }
 
       if (!named) {
-        const aria = el.getAttribute('aria-label');
-        named = !!aria && aria.trim() !== '';
+        const aria = el.getAttribute("aria-label");
+        named = !!aria && aria.trim() !== "";
       }
 
       if (!named && el.id) {
         const escaped = window.CSS && CSS.escape ? CSS.escape(el.id) : el.id;
         for (const label of Array.from(document.querySelectorAll(`label[for="${escaped}"]`))) {
-          if (ownText(label) !== '') {
+          if (ownText(label) !== "") {
             named = true;
             break;
           }
@@ -127,16 +129,16 @@ export async function auditControlNames(page: Page): Promise<ControlNameFailure[
       }
 
       if (!named) {
-        const wrapping = el.closest('label');
-        named = !!wrapping && ownText(wrapping) !== '';
+        const wrapping = el.closest("label");
+        named = !!wrapping && ownText(wrapping) !== "";
       }
 
       if (named) continue;
 
       const has: string[] = [];
-      for (const attr of ['placeholder', 'title', 'aria-label', 'aria-labelledby', 'name']) {
+      for (const attr of ["placeholder", "title", "aria-label", "aria-labelledby", "name"]) {
         const v = el.getAttribute(attr);
-        if (v !== null && v.trim() !== '') has.push(`${attr}="${v}"`);
+        if (v !== null && v.trim() !== "") has.push(`${attr}="${v}"`);
       }
       failures.push({ control: describe(el), has });
     }
@@ -149,6 +151,6 @@ export function formatControlNameFailures(failures: ControlNameFailure[]): strin
   return failures.map((f) =>
     f.has.length === 0
       ? `${f.control} has no accessible name at all`
-      : `${f.control} is named only by ${f.has.join(', ')} — needs label[for], a wrapping <label>, aria-label or aria-labelledby`
+      : `${f.control} is named only by ${f.has.join(", ")} — needs label[for], a wrapping <label>, aria-label or aria-labelledby`,
   );
 }
