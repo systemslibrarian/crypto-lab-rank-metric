@@ -165,9 +165,36 @@ function requirePassingBaseline(label) {
   }
 }
 
+/*
+ * Refuse a dirty tree before the baseline, not after.
+ *
+ * This gate overwrites real source files and restores them from `originals`,
+ * a Map read at startup. On a tree with uncommitted work, a crash between the
+ * two writes loses that work, and `restoreAll` would put back bytes that were
+ * never committed while every check below reported a clean campaign. Five labs
+ * in this fleet already refuse here and rank-metric did not, which made the
+ * gate order per-lab rather than fleet-wide.
+ *
+ * Untracked files count, because this script reads files from disk rather than
+ * from the index. Ignored paths -- test-results, dist, node_modules -- never
+ * appear in porcelain output, so the gate's own evidence directory is safe.
+ */
+function assertCleanTree() {
+  const status = spawnSync("git", ["status", "--porcelain=v1", "--untracked-files=all"], {
+    cwd: root,
+    encoding: "utf8",
+  });
+  if (status.error) throw status.error;
+  if (status.status !== 0)
+    throw new Error(`could not read the working tree: git exited ${status.status}`);
+  if (status.stdout.trim() !== "")
+    throw new Error(`working tree is not clean: ${status.stdout.trim()}`);
+}
+
 let caught = 0;
 const results = [];
 try {
+  assertCleanTree();
   requirePassingBaseline("baseline");
   console.log("baseline: unmutated copy PASSES");
 
