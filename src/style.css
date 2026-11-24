@@ -354,7 +354,10 @@ tbody th {
 
 .stale {
   border-color: var(--amber);
-  opacity: 0.68;
+}
+
+.stale :is(.vector-output, .metrics, .table-scroll, .trace-list) {
+  display: none;
 }
 
 .parameter-strip {

@@ -111,7 +111,7 @@ function renderCodeCensus(): void {
   document.querySelector<HTMLElement>("[data-code-n]")!.textContent = String(LENGTH);
   document.querySelector<HTMLElement>("[data-code-k]")!.textContent = String(DIMENSION);
   const distance = document.querySelector<HTMLElement>("[data-code-d]")!;
-  distance.textContent = String(MINIMUM_DISTANCE);
+  distance.textContent = String(census.minimumNonzeroRank);
   distance.dataset.value = String(census.minimumNonzeroRank);
   const radius = document.querySelector<HTMLElement>("[data-code-t]")!;
   radius.textContent = String(DECODING_RADIUS);
@@ -144,7 +144,7 @@ function renderCodeCensus(): void {
   distribution.dataset.rank3 = String(census.rankDistribution[3] ?? 0);
   distribution.dataset.rank4 = String(census.rankDistribution[4] ?? 0);
   const measured = elementById("measured-distance");
-  measured.textContent = `${census.minimumNonzeroRank} (matches n − k + 1)`;
+  measured.textContent = `${census.minimumNonzeroRank} (n − k + 1 = ${MINIMUM_DISTANCE})`;
   measured.dataset.value = String(census.minimumNonzeroRank);
   const singleton = elementById("singleton-bound");
   singleton.textContent = `2^${census.singletonExponent} = ${census.singletonBound}; equality ${census.meetsSingletonBound ? "holds" : "fails"}`;
@@ -198,21 +198,27 @@ function renderDecoder(): void {
     const reported = elementById("reported-message");
     reported.textContent = `None — ${run.decode.candidateCount} radius-one candidates`;
     delete reported.dataset.raw;
+    delete reported.dataset.distance;
     elementById("independent-check").textContent = "No reported word to re-encode";
   } else {
     const reported = elementById("reported-message");
     reported.textContent = `${formatVector(run.decode.message)} at distance ${run.decode.distance}`;
     reported.dataset.raw = run.decode.message.join(",");
     reported.dataset.distance = String(run.decode.distance);
-    elementById("independent-check").textContent = run.independentReencodingMatches
+    const check = elementById("independent-check");
+    check.textContent = run.independentReencodingMatches
       ? `Re-encoding matches; received-to-reported rank distance ${run.distanceToReportedWord}`
       : "Failed: re-encoding does not match the reported codeword";
+    if (run.independentReencodingMatches && run.outcome === "miscorrected") {
+      check.textContent += ". The reported word is different from the transmitted word.";
+    }
   }
 }
 
 function retireDecoder(): void {
   const result = elementById("decoder-result");
   result.dataset.status = "stale";
+  delete result.dataset.outcome;
   result.classList.add("stale");
   elementById("decoder-outcome").textContent = "Inputs changed — run the decoder again";
   elementById("decoder-explanation").textContent = "The previous verdict is retired.";

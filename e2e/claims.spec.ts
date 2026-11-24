@@ -74,10 +74,13 @@ test("the metric panel recomputes the binary matrix and retires stale output", a
   }
   await expect(page.locator("#metric-result")).toHaveAttribute("data-status", "stale");
   await expect(page.getByText(/Vector changed/)).toBeVisible();
+  await expect(page.locator("#hamming-weight")).toBeHidden();
+  await expect(page.locator("#binary-matrix")).toBeHidden();
   await page.getByRole("button", { name: "Compute both weights" }).click();
   await expect(page.locator("#metric-result")).toHaveAttribute("data-status", "current");
   await expect(page.locator("#hamming-weight")).toHaveAttribute("data-value", "4");
   await expect(page.locator("#rank-weight")).toHaveAttribute("data-value", "4");
+  await expect(page.locator("#rank-weight")).toBeVisible();
   expect(spanRank([1, 2, 4, 8])).toBe(4);
   expect(await displayedMatrix(page)).toEqual([
     ["1", "1", "0", "0", "0"],
@@ -140,9 +143,13 @@ test("the three decoder outcomes come from the selected message and actual error
   );
   await expect(page.locator("#reported-message")).toHaveAttribute("data-raw", "5,9");
 
+  await expect(page.locator("#reported-message")).toBeVisible();
   await page.locator("#scenario").selectOption("refusal");
+  await expect(page.locator("#reported-message")).toBeHidden();
   await expect(page.locator("#decoder-result")).toHaveAttribute("data-status", "stale");
   await page.getByRole("button", { name: "Run bounded decoder" }).click();
+  await expect(page.locator("#reported-message")).toBeVisible();
+  await expect(page.locator("#reported-message")).not.toHaveAttribute("data-distance", /.+/);
   const refusalReceived = transmitted.map((value, index) => value ^ [10, 1, 0, 0][index]);
   expect(decode(refusalReceived)).toBeNull();
   await expect(page.locator("#decoder-result")).toHaveAttribute("data-outcome", "refused");
@@ -160,6 +167,9 @@ test("the three decoder outcomes come from the selected message and actual error
     independentlyDecoded!.message.join(","),
   );
   await expect(page.getByText(/guarantee has not been contradicted/)).toBeVisible();
+  await expect(page.locator("#independent-check")).toContainText(
+    "different from the transmitted word",
+  );
 });
 
 test("the complete rank-two browser census reports the finite result", async ({ page }) => {

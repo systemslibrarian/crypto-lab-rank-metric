@@ -58,7 +58,7 @@
           </form>
 
           <div id="metric-result" class="result-panel" aria-live="polite" data-status="current">
-            <p class="result-label">Current computation</p>
+            <p class="result-label">Vector weights</p>
             <p id="selected-vector" class="vector-output"></p>
             <dl class="metrics">
               <div>
@@ -99,7 +99,8 @@
           For message <span class="math">(a₀,a₁)</span>, the encoder evaluates the linearized
           polynomial <span class="math">f(x)=a₀x+a₁x²</span> at
           <span class="math">g=(1,α,α²,α³)</span>. The four evaluation points are linearly
-          independent over GF(2). Every figure below is recomputed from all 256 messages.
+          independent over GF(2). The census enumerates all 256 messages to measure the minimum
+          distance and count words of each rank.
         </p>
 
         <div class="parameter-strip" aria-label="Code parameters">
@@ -164,7 +165,8 @@
         <p>
           This finite decoder checks every one of the 256 codewords and returns a word only when
           exactly one lies at rank distance at most <span class="math">t=1</span>. It is an
-          auditable exhaustive decoder—not Gabidulin’s efficient algebraic algorithm.
+          auditable exhaustive decoder. It sees only the received word. The lesson also knows which
+          message was sent, so it can show when the decoder returns a different one.
         </p>
 
         <div class="workbench two-column">
@@ -211,7 +213,7 @@
                 <dd id="reported-message"></dd>
               </div>
               <div>
-                <dt>Independent check</dt>
+                <dt>Re-encoding check</dt>
                 <dd id="independent-check"></dd>
               </div>
             </dl>
